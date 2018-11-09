@@ -642,9 +642,16 @@ void matrix_optimize(int vari_node,double learningrate)
 		fprintf(stderr,"优化节点不是Variable节点!!");
 		assert(matgraph[vari_node].type==VARIABLE);
 	}
+	double sum=0.0f;
 	for(int i=0;i<matgraph[vari_node].m;++i)
 	for(int j=0;j<matgraph[vari_node].n;++j)
-		matgraph[vari_node].data[i][j]-=learningrate*grad[vari_node].data[i][j];
+	{
+		sum+=grad[vari_node].data[i][j]*grad[vari_node].data[i][j];
+	}	
+	sum=sqrt(sum);
+	for(int i=0;i<matgraph[vari_node].m;++i)
+	for(int j=0;j<matgraph[vari_node].n;++j)
+		matgraph[vari_node].data[i][j]-=learningrate*(grad[vari_node].data[i][j]/sum);
 }
 /**
  * @brief

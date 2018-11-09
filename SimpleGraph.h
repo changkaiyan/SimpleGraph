@@ -72,3 +72,4 @@ static void cleargrad();
 Node matrix_scanData(int m, int n);
 void matrix_printData(int node);
 int matrix_placeholder(int m, int n);
+void matrix_optimize(int vari_node,double learningrate);
