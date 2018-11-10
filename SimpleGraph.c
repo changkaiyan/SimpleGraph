@@ -19,6 +19,8 @@
 static Node mul(Node*a, Node*b);
 static Node add(Node*a, Node*b);
 static Node sub(Node*a, Node*b);
+static void backward(int node);
+static void cleargrad();
 static Node matgraph[512];//
 static int graphpoint = 0;//
 static Node grad[512];//
@@ -254,6 +256,17 @@ int matrix_mul(int lchild, int rchild)
 	grad[graphpoint].lnode = grad[graphpoint].rnode = -1;
 	grad[graphpoint].parentGrad = 0;
 	return graphpoint++;
+}
+
+Node matrix_zero(int m,int n)
+{
+	Node matrix;
+	matrix.m=m;
+	matrix.n=n;
+	matrix.data=calloc(m,sizeof(double*));
+	for(int i=0;i<m;++i)
+		matrix.data[i]=calloc(n,sizeof(double));
+	return matrix;
 }
 
 /**
