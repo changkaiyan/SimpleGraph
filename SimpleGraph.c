@@ -182,23 +182,8 @@ int matrix_add(int lchild, int rchild)
 	grad[graphpoint].type = matgraph[graphpoint].type = ADD;
 	matgraph[graphpoint].lnode = lchild;
 	matgraph[graphpoint].rnode = rchild;
-	if (grad[lchild].parentGrad == 0)
-	{
-		grad[lchild].parentGrad++;
-	}
-	else
-	{
-		grad[lchild].parentGrad++;
-		grad[lchild].rnode = graphpoint;
-	}
-	if (grad[rchild].parentGrad == 0)
-	{
-		grad[rchild].parentGrad++;
-	}
-	else
-	{
-		grad[rchild].parentGrad++;
-	}
+	grad[lchild].parentGrad++;
+	grad[rchild].parentGrad++;
 	grad[graphpoint].parentGrad = 0;
 	return graphpoint++;
 }
@@ -227,22 +212,8 @@ int matrix_mul(int lchild, int rchild)
 	grad[graphpoint].type = matgraph[graphpoint].type = MULTIPLY;
 	matgraph[graphpoint].lnode = lchild;
 	matgraph[graphpoint].rnode = rchild;
-	if (grad[lchild].parentGrad == 0)
-	{
-		grad[lchild].parentGrad++;
-	}
-	else
-	{
-		grad[lchild].parentGrad++;
-	}
-	if (grad[rchild].parentGrad == 0)
-	{
-		grad[rchild].parentGrad++;
-	}
-	else
-	{
-		grad[rchild].parentGrad++;
-	}
+	grad[lchild].parentGrad++;
+	grad[rchild].parentGrad++;
 	grad[graphpoint].parentGrad = 0;
 	return graphpoint++;
 }
@@ -282,22 +253,8 @@ int matrix_sub(int lchild, int rchild)
 	grad[graphpoint].type = matgraph[graphpoint].type = SUB;
 	matgraph[graphpoint].lnode = lchild;
 	matgraph[graphpoint].rnode = rchild;
-	if (grad[lchild].parentGrad == 0)
-	{
-		grad[lchild].parentGrad++;
-	}
-	else
-	{
-		grad[lchild].parentGrad++;
-	}
-	if (grad[rchild].parentGrad == 0)
-	{
-		grad[rchild].parentGrad++;
-	}
-	else
-	{
-		grad[rchild].parentGrad++;
-	}
+	grad[lchild].parentGrad++;
+	grad[rchild].parentGrad++;
 	grad[graphpoint].parentGrad = 0;
 	return graphpoint++;
 }
