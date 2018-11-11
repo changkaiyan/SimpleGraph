@@ -7,7 +7,7 @@
  * @date 2018-11-08
  *
  * @copyright Copyright 2018 Kaiyan Chang
- * 
+ *
  */
 #include<stdio.h>
 #include<math.h>
@@ -15,6 +15,7 @@
 #include<malloc.h>
 #include"SimpleGraph.h"
 #include<stdbool.h>
+
 
 static Node mul(Node*a, Node*b);
 static Node add(Node*a, Node*b);
@@ -24,7 +25,7 @@ static void cleargrad();
 static Node matgraph[512];//
 static int graphpoint = 0;//
 static Node grad[512];//
-bool has_forward=false;
+bool has_forward = false;
 /**
  * @brief
  *
@@ -101,12 +102,11 @@ int matrix_constant(Node x)//x必须有数据,必须有具体的大小
 	matgraph[graphpoint] = x;
 	grad[graphpoint].type = matgraph[graphpoint].type = CONSTANT;
 	matgraph[graphpoint].lnode = matgraph[graphpoint].rnode = -1;
-	grad[graphpoint].lnode = grad[graphpoint].rnode = -1;
 	grad[graphpoint].parentGrad = 0;
-	grad[graphpoint].data = calloc(matgraph[graphpoint].m, sizeof(double*));
+	grad[graphpoint].data = (double**)calloc(matgraph[graphpoint].m, sizeof(double*));
 	for (int j = 0; j < matgraph[graphpoint].m; ++j)
 	{
-		grad[graphpoint].data[j] = calloc(matgraph[graphpoint].n, sizeof(double));
+		grad[graphpoint].data[j] = (double*)calloc(matgraph[graphpoint].n, sizeof(double));
 	}
 	grad[graphpoint].m = matgraph[graphpoint].m;
 	grad[graphpoint].n = matgraph[graphpoint].n;
@@ -124,12 +124,11 @@ int matrix_variable(Node x)
 	matgraph[graphpoint] = x;
 	grad[graphpoint].type = matgraph[graphpoint].type = VARIABLE;
 	matgraph[graphpoint].lnode = matgraph[graphpoint].rnode = -1;
-	grad[graphpoint].lnode = grad[graphpoint].rnode = -1;
 	grad[graphpoint].parentGrad = 0;
-	grad[graphpoint].data = calloc(matgraph[graphpoint].m, sizeof(double*));
+	grad[graphpoint].data = (double**)calloc(matgraph[graphpoint].m, sizeof(double*));
 	for (int j = 0; j < matgraph[graphpoint].m; ++j)
 	{
-		grad[graphpoint].data[j] = calloc(matgraph[graphpoint].n, sizeof(double));
+		grad[graphpoint].data[j] = (double*)calloc(matgraph[graphpoint].n, sizeof(double));
 	}
 	grad[graphpoint].m = matgraph[graphpoint].m;
 	grad[graphpoint].n = matgraph[graphpoint].n;
@@ -149,13 +148,12 @@ int matrix_placeholder(int m, int n)//需要输入矩阵型号,确保前向传�
 	grad[graphpoint].n = matgraph[graphpoint].n = n;
 	grad[graphpoint].type = matgraph[graphpoint].type = PLACEHOLDER;
 	matgraph[graphpoint].lnode = matgraph[graphpoint].rnode = -1;
-	grad[graphpoint].lnode = grad[graphpoint].rnode = -1;
 	matgraph[graphpoint].data = NULL;
 	grad[graphpoint].parentGrad = 0;
-	grad[graphpoint].data = calloc(matgraph[graphpoint].m, sizeof(double*));
+	grad[graphpoint].data = (double**)calloc(matgraph[graphpoint].m, sizeof(double*));
 	for (int j = 0; j < matgraph[graphpoint].m; ++j)
 	{
-		grad[graphpoint].data[j] = calloc(matgraph[graphpoint].n, sizeof(double));
+		grad[graphpoint].data[j] = (double*)calloc(matgraph[graphpoint].n, sizeof(double));
 	}
 	return graphpoint++;
 }
@@ -171,15 +169,15 @@ int matrix_add(int lchild, int rchild)
 {
 	grad[graphpoint].m = matgraph[graphpoint].m = matgraph[lchild].m;
 	grad[graphpoint].n = matgraph[graphpoint].n = matgraph[rchild].n;
-	matgraph[graphpoint].data = calloc(matgraph[graphpoint].m, sizeof(double*));
+	matgraph[graphpoint].data = (double**)calloc(matgraph[graphpoint].m, sizeof(double*));
 	for (int j = 0; j < matgraph[graphpoint].m; ++j)
 	{
-		matgraph[graphpoint].data[j] = calloc(matgraph[graphpoint].n, sizeof(double));
+		matgraph[graphpoint].data[j] = (double*)calloc(matgraph[graphpoint].n, sizeof(double));
 	}
-	grad[graphpoint].data = calloc(matgraph[graphpoint].m, sizeof(double*));
+	grad[graphpoint].data = (double**)calloc(matgraph[graphpoint].m, sizeof(double*));
 	for (int j = 0; j < matgraph[graphpoint].m; ++j)
 	{
-		grad[graphpoint].data[j] = calloc(matgraph[graphpoint].n, sizeof(double));
+		grad[graphpoint].data[j] = (double*)calloc(matgraph[graphpoint].n, sizeof(double));
 	}
 	grad[graphpoint].type = matgraph[graphpoint].type = ADD;
 	matgraph[graphpoint].lnode = lchild;
@@ -187,7 +185,6 @@ int matrix_add(int lchild, int rchild)
 	if (grad[lchild].parentGrad == 0)
 	{
 		grad[lchild].parentGrad++;
-		grad[lchild].lnode = graphpoint;
 	}
 	else
 	{
@@ -197,14 +194,11 @@ int matrix_add(int lchild, int rchild)
 	if (grad[rchild].parentGrad == 0)
 	{
 		grad[rchild].parentGrad++;
-		grad[rchild].lnode = graphpoint;
 	}
 	else
 	{
 		grad[rchild].parentGrad++;
-		grad[rchild].rnode = graphpoint;
 	}
-	grad[graphpoint].lnode = grad[graphpoint].rnode = -1;
 	grad[graphpoint].parentGrad = 0;
 	return graphpoint++;
 }
@@ -220,15 +214,15 @@ int matrix_mul(int lchild, int rchild)
 {
 	grad[graphpoint].m = matgraph[graphpoint].m = matgraph[lchild].m;
 	grad[graphpoint].n = matgraph[graphpoint].n = matgraph[rchild].n;
-	matgraph[graphpoint].data = calloc(matgraph[graphpoint].m, sizeof(double*));
+	matgraph[graphpoint].data = (double**)calloc(matgraph[graphpoint].m, sizeof(double*));
 	for (int j = 0; j < matgraph[graphpoint].m; ++j)
 	{
-		matgraph[graphpoint].data[j] = calloc(matgraph[graphpoint].n, sizeof(double));
+		matgraph[graphpoint].data[j] = (double*)calloc(matgraph[graphpoint].n, sizeof(double));
 	}
-	grad[graphpoint].data = calloc(matgraph[graphpoint].m, sizeof(double*));
+	grad[graphpoint].data = (double**)calloc(matgraph[graphpoint].m, sizeof(double*));
 	for (int j = 0; j < matgraph[graphpoint].m; ++j)
 	{
-		grad[graphpoint].data[j] = calloc(matgraph[graphpoint].n, sizeof(double));
+		grad[graphpoint].data[j] = (double*)calloc(matgraph[graphpoint].n, sizeof(double));
 	}
 	grad[graphpoint].type = matgraph[graphpoint].type = MULTIPLY;
 	matgraph[graphpoint].lnode = lchild;
@@ -236,36 +230,31 @@ int matrix_mul(int lchild, int rchild)
 	if (grad[lchild].parentGrad == 0)
 	{
 		grad[lchild].parentGrad++;
-		grad[lchild].lnode = graphpoint;
 	}
 	else
 	{
 		grad[lchild].parentGrad++;
-		grad[lchild].rnode = graphpoint;
 	}
 	if (grad[rchild].parentGrad == 0)
 	{
 		grad[rchild].parentGrad++;
-		grad[rchild].lnode = graphpoint;
 	}
 	else
 	{
 		grad[rchild].parentGrad++;
-		grad[rchild].rnode = graphpoint;
 	}
-	grad[graphpoint].lnode = grad[graphpoint].rnode = -1;
 	grad[graphpoint].parentGrad = 0;
 	return graphpoint++;
 }
 
-Node matrix_zero(int m,int n)
+Node matrix_zero(int m, int n)
 {
 	Node matrix;
-	matrix.m=m;
-	matrix.n=n;
-	matrix.data=calloc(m,sizeof(double*));
-	for(int i=0;i<m;++i)
-		matrix.data[i]=calloc(n,sizeof(double));
+	matrix.m = m;
+	matrix.n = n;
+	matrix.data = (double**)calloc(m, sizeof(double*));
+	for (int i = 0; i < m; ++i)
+		matrix.data[i] = (double*)calloc(n, sizeof(double));
 	return matrix;
 }
 
@@ -280,15 +269,15 @@ int matrix_sub(int lchild, int rchild)
 {
 	grad[graphpoint].m = matgraph[graphpoint].m = matgraph[lchild].m;
 	grad[graphpoint].n = matgraph[graphpoint].n = matgraph[rchild].n;
-	matgraph[graphpoint].data = calloc(matgraph[graphpoint].m, sizeof(double*));
+	matgraph[graphpoint].data = (double**)calloc(matgraph[graphpoint].m, sizeof(double*));
 	for (int j = 0; j < matgraph[graphpoint].m; ++j)
 	{
-		matgraph[graphpoint].data[j] = calloc(matgraph[graphpoint].n, sizeof(double));
+		matgraph[graphpoint].data[j] = (double*)calloc(matgraph[graphpoint].n, sizeof(double));
 	}
-	grad[graphpoint].data = calloc(matgraph[graphpoint].m, sizeof(double*));
+	grad[graphpoint].data = (double**)calloc(matgraph[graphpoint].m, sizeof(double*));
 	for (int j = 0; j < matgraph[graphpoint].m; ++j)
 	{
-		grad[graphpoint].data[j] = calloc(matgraph[graphpoint].n, sizeof(double));
+		grad[graphpoint].data[j] = (double*)calloc(matgraph[graphpoint].n, sizeof(double));
 	}
 	grad[graphpoint].type = matgraph[graphpoint].type = SUB;
 	matgraph[graphpoint].lnode = lchild;
@@ -296,24 +285,19 @@ int matrix_sub(int lchild, int rchild)
 	if (grad[lchild].parentGrad == 0)
 	{
 		grad[lchild].parentGrad++;
-		grad[lchild].lnode = graphpoint;
 	}
 	else
 	{
 		grad[lchild].parentGrad++;
-		grad[lchild].rnode = graphpoint;
 	}
 	if (grad[rchild].parentGrad == 0)
 	{
 		grad[rchild].parentGrad++;
-		grad[rchild].lnode = graphpoint;
 	}
 	else
 	{
 		grad[rchild].parentGrad++;
-		grad[rchild].rnode = graphpoint;
 	}
-	grad[graphpoint].lnode = grad[graphpoint].rnode = -1;
 	grad[graphpoint].parentGrad = 0;
 	return graphpoint++;
 }
@@ -322,15 +306,15 @@ int matrix_relu(int lchild)
 {
 	grad[graphpoint].m = matgraph[graphpoint].m = matgraph[lchild].m;
 	grad[graphpoint].n = matgraph[graphpoint].n = matgraph[lchild].n;
-	matgraph[graphpoint].data = calloc(matgraph[graphpoint].m, sizeof(double*));
+	matgraph[graphpoint].data = (double**)calloc(matgraph[graphpoint].m, sizeof(double*));
 	for (int j = 0; j < matgraph[graphpoint].m; ++j)
 	{
-		matgraph[graphpoint].data[j] = calloc(matgraph[graphpoint].n, sizeof(double));
+		matgraph[graphpoint].data[j] = (double*)calloc(matgraph[graphpoint].n, sizeof(double));
 	}
-	grad[graphpoint].data = calloc(matgraph[graphpoint].m, sizeof(double*));
+	grad[graphpoint].data = (double**)calloc(matgraph[graphpoint].m, sizeof(double*));
 	for (int j = 0; j < matgraph[graphpoint].m; ++j)
 	{
-		grad[graphpoint].data[j] = calloc(matgraph[graphpoint].n, sizeof(double));
+		grad[graphpoint].data[j] = (double*)calloc(matgraph[graphpoint].n, sizeof(double));
 	}
 	grad[graphpoint].type = matgraph[graphpoint].type = RELU;
 	matgraph[graphpoint].lnode = lchild;
@@ -338,14 +322,11 @@ int matrix_relu(int lchild)
 	if (grad[lchild].parentGrad == 0)
 	{
 		grad[lchild].parentGrad++;
-		grad[lchild].lnode = graphpoint;
 	}
 	else
 	{
 		grad[lchild].parentGrad++;
-		grad[lchild].rnode = graphpoint;
 	}
-	grad[graphpoint].lnode = grad[graphpoint].rnode = -1;
 	grad[graphpoint].parentGrad = 0;
 	return graphpoint++;
 }
@@ -359,27 +340,17 @@ int matrix_meanSquar(int lchild)
 {
 	grad[graphpoint].m = matgraph[graphpoint].m = 1;
 	grad[graphpoint].n = matgraph[graphpoint].n = 1;
-	matgraph[graphpoint].data = calloc(1, sizeof(double*));
-	matgraph[graphpoint].data[0] = calloc(1, sizeof(double));
+	matgraph[graphpoint].data = (double**)calloc(1, sizeof(double*));
+	matgraph[graphpoint].data[0] = (double*)calloc(1, sizeof(double));
 	grad[graphpoint].type = matgraph[graphpoint].type = MEANSQUAR;
 	matgraph[graphpoint].lnode = lchild;
 	matgraph[graphpoint].rnode = -1;
-	if (grad[lchild].parentGrad == 0)
-	{
-		grad[lchild].parentGrad++;
-		grad[lchild].lnode = graphpoint;
-	}
-	else
-	{
-		grad[lchild].parentGrad++;
-		grad[lchild].rnode = graphpoint;
-	}
-	grad[graphpoint].lnode = grad[graphpoint].rnode = -1;
+	grad[lchild].parentGrad++;
 	grad[graphpoint].parentGrad = 0;
-	grad[graphpoint].data = calloc(matgraph[graphpoint].m, sizeof(double*));
+	grad[graphpoint].data = (double**)calloc(matgraph[graphpoint].m, sizeof(double*));
 	for (int j = 0; j < matgraph[graphpoint].m; ++j)
 	{
-		grad[graphpoint].data[j] = calloc(matgraph[graphpoint].n, sizeof(double));
+		grad[graphpoint].data[j] = (double*)calloc(matgraph[graphpoint].n, sizeof(double));
 	}
 	grad[graphpoint].m = matgraph[graphpoint].m;
 	grad[graphpoint].n = matgraph[graphpoint].n;
@@ -462,8 +433,8 @@ void matrix_forwardFlow()
 			matgraph[index].data[0][0] = 0;
 			for (int i = 0; i < matgraph[matgraph[index].lnode].m; ++i)
 				for (int j = 0; j < matgraph[matgraph[index].lnode].n; ++j)
-					matgraph[index].data[0][0] +=0.5* matgraph[matgraph[index].lnode].data[i][j]*matgraph[matgraph[index].lnode].data[i][j];
-			matgraph[index].data[0][0]/=matgraph[matgraph[index].lnode].m*matgraph[matgraph[index].lnode].n;
+					matgraph[index].data[0][0] += 0.5* matgraph[matgraph[index].lnode].data[i][j] * matgraph[matgraph[index].lnode].data[i][j];
+			matgraph[index].data[0][0] /= matgraph[matgraph[index].lnode].m*matgraph[matgraph[index].lnode].n;
 			break;
 		}
 		case PLACEHOLDER:
@@ -479,7 +450,7 @@ void matrix_forwardFlow()
 		{
 			for (int i = 0; i < matgraph[index].m; ++i)
 				for (int j = 0; j < matgraph[index].n; ++j)
-					matgraph[index].data[i][j] = matgraph[matgraph[index].lnode].data[i][j]>0?matgraph[matgraph[index].lnode].data[i][j]:0;
+					matgraph[index].data[i][j] = matgraph[matgraph[index].lnode].data[i][j] > 0 ? matgraph[matgraph[index].lnode].data[i][j] : 0;
 		}
 		default:;//默认情况下是叶子节点,什么也不需要做
 		}
@@ -516,7 +487,7 @@ void matrix_backFlow(int node)
  */
 static void backward(int node)
 {
-	if (grad[node].lnode == -1 && grad[node].rnode == -1)//梯度源点,标量对矩阵求导,这个节点仅有左孩子
+	if (matgraph[node].type==MEANSQUAR)//梯度源点,标量对矩阵求导,这个节点仅有左孩子
 	{
 		for (int i = 0; i < grad[matgraph[node].lnode].m; ++i)
 			for (int j = 0; j < grad[matgraph[node].lnode].n; ++j)
@@ -592,7 +563,7 @@ static void backward(int node)
 				for (int i = 0; i < matgraph[node].m; ++i)
 					for (int j = 0; j < matgraph[node].n; ++j)
 					{
-						grad[matgraph[node].lnode].data[i][j] += grad[node].data[i][j]*(matgraph[matgraph[node].lnode].data[i][j]>0?1:0);//更新左孩子的梯度
+						grad[matgraph[node].lnode].data[i][j] += grad[node].data[i][j] * (matgraph[matgraph[node].lnode].data[i][j] > 0 ? 1 : 0);//更新左孩子的梯度
 					}
 				grad[matgraph[node].lnode].parentGrad--;
 				backward(matgraph[node].lnode);
@@ -648,23 +619,23 @@ void matrix_printData(int node)
 	}
 }
 
-void matrix_optimize(int vari_node,double learningrate)
+void matrix_optimize(int vari_node, double learningrate)
 {
-	if(matgraph[vari_node].type!=VARIABLE&&learningrate>=0)
+	if (matgraph[vari_node].type != VARIABLE && learningrate >= 0)
 	{
-		fprintf(stderr,"优化节点不是Variable节点!!");
-		assert(matgraph[vari_node].type==VARIABLE);
+		fprintf(stderr, "优化节点不是Variable节点!!");
+		assert(matgraph[vari_node].type == VARIABLE);
 	}
-	double sum=0.0f;
-	for(int i=0;i<matgraph[vari_node].m;++i)
-	for(int j=0;j<matgraph[vari_node].n;++j)
-	{
-		sum+=grad[vari_node].data[i][j]*grad[vari_node].data[i][j];
-	}	
-	sum=sqrt(sum);
-	for(int i=0;i<matgraph[vari_node].m;++i)
-	for(int j=0;j<matgraph[vari_node].n;++j)
-		matgraph[vari_node].data[i][j]-=learningrate*(grad[vari_node].data[i][j]/sum);
+	double sum = 0.0f;
+	for (int i = 0; i < matgraph[vari_node].m; ++i)
+		for (int j = 0; j < matgraph[vari_node].n; ++j)
+		{
+			sum += grad[vari_node].data[i][j] * grad[vari_node].data[i][j];
+		}
+	sum = sqrt(sum);
+	for (int i = 0; i < matgraph[vari_node].m; ++i)
+		for (int j = 0; j < matgraph[vari_node].n; ++j)
+			matgraph[vari_node].data[i][j] -= learningrate * (grad[vari_node].data[i][j] / sum);
 }
 /**
  * @brief
@@ -690,10 +661,10 @@ void matrix_printGrad(int node)
 Node matrix_scanData(int m, int n)
 {
 	Node temp;
-	temp.data = malloc(sizeof(double*)*m);
+	temp.data = (double**)malloc(sizeof(double*)*m);
 	for (int i = 0; i < m; ++i)
 	{
-		temp.data[i] = malloc(sizeof(double)*n);
+		temp.data[i] = (double*)malloc(sizeof(double)*n);
 	}
 	for (int i = 0; i < m; ++i)
 		for (int j = 0; j < n; ++j)
@@ -702,3 +673,4 @@ Node matrix_scanData(int m, int n)
 	temp.n = n;
 	return temp;
 }
+
