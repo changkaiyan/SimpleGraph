@@ -276,14 +276,7 @@ int matrix_relu(int lchild)
 	grad[graphpoint].type = matgraph[graphpoint].type = RELU;
 	matgraph[graphpoint].lnode = lchild;
 	matgraph[graphpoint].rnode = -1;
-	if (grad[lchild].parentGrad == 0)
-	{
-		grad[lchild].parentGrad++;
-	}
-	else
-	{
-		grad[lchild].parentGrad++;
-	}
+	grad[lchild].parentGrad++;
 	grad[graphpoint].parentGrad = 0;
 	return graphpoint++;
 }
