@@ -2,7 +2,7 @@
  * @file mygraph.c
  * @author ChangKaiyan (changkaiyan@std.uestc.edu.cn)
  * @brief A Computational Graph for Deep learning from UESTC Software Engineering(Embeded System)
- * æ·±åº¦å­¦ä¹ è®¡ç®—å›¾@ç”µå­ç§‘æŠ€å¤§å­¦ä¿¡æ¯ä¸è½¯ä»¶å·¥ç¨‹å­¦é™¢
+ * Éî¶ÈÑ§Ï°¼ÆËãÍ¼@µç×Ó¿Æ¼¼´óÑ§ĞÅÏ¢ÓëÈí¼ş¹¤³ÌÑ§Ôº
  * @version 0.1
  * @date 2018-11-08
  *
@@ -97,12 +97,12 @@ static Node mul(Node*a, Node*b)
  * @param x
  * @return int
  */
-int matrix_constant(Node x)//xå¿…é¡»æœ‰æ•°æ®,å¿…é¡»æœ‰å…·ä½“çš„å¤§å°
+int matrix_constant(Node x)//x±ØĞëÓĞÊı¾İ,±ØĞëÓĞ¾ßÌåµÄ´óĞ¡
 {
 	matgraph[graphpoint] = x;
 	grad[graphpoint].type = matgraph[graphpoint].type = CONSTANT;
 	matgraph[graphpoint].lnode = matgraph[graphpoint].rnode = -1;
-	grad[graphpoint].parentGrad = 0;
+	grad[graphpoint].parentGrad = grad[graphpoint].parentGrad_=0;
 	grad[graphpoint].data = (double**)calloc(matgraph[graphpoint].m, sizeof(double*));
 	for (int j = 0; j < matgraph[graphpoint].m; ++j)
 	{
@@ -124,7 +124,7 @@ int matrix_variable(Node x)
 	matgraph[graphpoint] = x;
 	grad[graphpoint].type = matgraph[graphpoint].type = VARIABLE;
 	matgraph[graphpoint].lnode = matgraph[graphpoint].rnode = -1;
-	grad[graphpoint].parentGrad = 0;
+	grad[graphpoint].parentGrad = grad[graphpoint].parentGrad_=0;
 	grad[graphpoint].data = (double**)calloc(matgraph[graphpoint].m, sizeof(double*));
 	for (int j = 0; j < matgraph[graphpoint].m; ++j)
 	{
@@ -142,14 +142,14 @@ int matrix_variable(Node x)
  * @param n
  * @return int
  */
-int matrix_placeholder(int m, int n)//éœ€è¦è¾“å…¥çŸ©é˜µå‹å·,ç¡®ä¿å‰å‘ä¼ æ’­çŸ©é˜µå‹å·ä¸€è‡´ç»Ÿä¸€,æ„å»ºè®¡ç®—å›¾æ—¶,åå‘ä¼ æ’­ç»Ÿä¸€åˆ†é…æ‰€æœ‰å†…å­˜
+int matrix_placeholder(int m, int n)//ĞèÒªÊäÈë¾ØÕóĞÍºÅ,È·±£Ç°Ïò´«²¥¾ØÕóĞÍºÅÒ»ÖÂÍ³Ò»,¹¹½¨¼ÆËãÍ¼Ê±,·´Ïò´«²¥Í³Ò»·ÖÅäËùÓĞÄÚ´æ
 {
 	grad[graphpoint].m = matgraph[graphpoint].m = m;
 	grad[graphpoint].n = matgraph[graphpoint].n = n;
 	grad[graphpoint].type = matgraph[graphpoint].type = PLACEHOLDER;
 	matgraph[graphpoint].lnode = matgraph[graphpoint].rnode = -1;
 	matgraph[graphpoint].data = NULL;
-	grad[graphpoint].parentGrad = 0;
+	grad[graphpoint].parentGrad = grad[graphpoint].parentGrad_ = 0;
 	grad[graphpoint].data = (double**)calloc(matgraph[graphpoint].m, sizeof(double*));
 	for (int j = 0; j < matgraph[graphpoint].m; ++j)
 	{
@@ -184,7 +184,9 @@ int matrix_add(int lchild, int rchild)
 	matgraph[graphpoint].rnode = rchild;
 	grad[lchild].parentGrad++;
 	grad[rchild].parentGrad++;
-	grad[graphpoint].parentGrad = 0;
+	grad[lchild].parentGrad_++;
+	grad[rchild].parentGrad_++;
+	grad[graphpoint].parentGrad = grad[graphpoint].parentGrad_=0;
 	return graphpoint++;
 }
 
@@ -214,7 +216,9 @@ int matrix_mul(int lchild, int rchild)
 	matgraph[graphpoint].rnode = rchild;
 	grad[lchild].parentGrad++;
 	grad[rchild].parentGrad++;
-	grad[graphpoint].parentGrad = 0;
+	grad[lchild].parentGrad_++;
+	grad[rchild].parentGrad_++;
+	grad[graphpoint].parentGrad = grad[graphpoint].parentGrad_=0;
 	return graphpoint++;
 }
 
@@ -255,7 +259,9 @@ int matrix_sub(int lchild, int rchild)
 	matgraph[graphpoint].rnode = rchild;
 	grad[lchild].parentGrad++;
 	grad[rchild].parentGrad++;
-	grad[graphpoint].parentGrad = 0;
+	grad[lchild].parentGrad_++;
+	grad[rchild].parentGrad_++;
+	grad[graphpoint].parentGrad = grad[graphpoint].parentGrad_=0;
 	return graphpoint++;
 }
 
@@ -277,7 +283,8 @@ int matrix_relu(int lchild)
 	matgraph[graphpoint].lnode = lchild;
 	matgraph[graphpoint].rnode = -1;
 	grad[lchild].parentGrad++;
-	grad[graphpoint].parentGrad = 0;
+	grad[lchild].parentGrad_++;
+	grad[graphpoint].parentGrad = grad[graphpoint].parentGrad_=0;
 	return graphpoint++;
 }
 /**
@@ -296,7 +303,9 @@ int matrix_meanSquar(int lchild)
 	matgraph[graphpoint].lnode = lchild;
 	matgraph[graphpoint].rnode = -1;
 	grad[lchild].parentGrad++;
+	grad[lchild].parentGrad_++;
 	grad[graphpoint].parentGrad = 0;
+	grad[graphpoint].parentGrad_ = 0;
 	grad[graphpoint].data = (double**)calloc(matgraph[graphpoint].m, sizeof(double*));
 	for (int j = 0; j < matgraph[graphpoint].m; ++j)
 	{
@@ -317,7 +326,7 @@ void matrix_fillIn(int node, Node x)
 {
 	if (matgraph[node].type != PLACEHOLDER)
 	{
-		fprintf(stderr, "ä¸èƒ½å‘ä¸€ä¸ªéplaceholderèŠ‚ç‚¹ä¸­å¡«å……æ•°æ®");
+		fprintf(stderr, "²»ÄÜÏòÒ»¸ö·Çplaceholder½ÚµãÖĞÌî³äÊı¾İ");
 	}
 	else
 		matgraph[node].data = x.data;
@@ -345,7 +354,7 @@ void deletegraph()
 }
 
 /**
- * @brief ç»Ÿä¸€ä½¿ç”¨å›ºå®šå‹å·çŸ©é˜µçš„è®¡ç®—å›¾,è§„èŒƒè®¡ç®—å›¾,åªæœ‰ä¸€ä¸ªä¼˜åŒ–èŠ‚ç‚¹
+ * @brief Í³Ò»Ê¹ÓÃ¹Ì¶¨ĞÍºÅ¾ØÕóµÄ¼ÆËãÍ¼,¹æ·¶¼ÆËãÍ¼,Ö»ÓĞÒ»¸öÓÅ»¯½Úµã
  *
  */
 void matrix_forwardFlow()
@@ -391,7 +400,7 @@ void matrix_forwardFlow()
 		{
 			if (matgraph[index].data == NULL)
 			{
-				fprintf(stderr, "åœ¨å‰å‘ä¼ æ’­ä¹‹å‰éœ€è¦å¯¹placeholderèŠ‚ç‚¹èµ‹å€¼!");
+				fprintf(stderr, "ÔÚÇ°Ïò´«²¥Ö®Ç°ĞèÒª¶Ôplaceholder½Úµã¸³Öµ!");
 				assert(matgraph[index].data != NULL);
 			}
 			break;
@@ -402,7 +411,7 @@ void matrix_forwardFlow()
 				for (int j = 0; j < matgraph[index].n; ++j)
 					matgraph[index].data[i][j] = matgraph[matgraph[index].lnode].data[i][j] > 0 ? matgraph[matgraph[index].lnode].data[i][j] : 0;
 		}
-		default:;//é»˜è®¤æƒ…å†µä¸‹æ˜¯å¶å­èŠ‚ç‚¹,ä»€ä¹ˆä¹Ÿä¸éœ€è¦åš
+		default:;//Ä¬ÈÏÇé¿öÏÂÊÇÒ¶×Ó½Úµã,Ê²Ã´Ò²²»ĞèÒª×ö
 		}
 	}
 }
@@ -416,12 +425,12 @@ void matrix_backFlow(int node)
 {
 	if (matgraph[node].type != MEANSQUAR)
 	{
-		fprintf(stderr, "åå‘ä¼ æ’­é”™è¯¯!!åå‘ä¼ æ’­çš„èµ·å§‹èŠ‚ç‚¹åªèƒ½æ˜¯ä»¥æ ‡é‡è¾“å‡ºçš„èŠ‚ç‚¹.");
+		fprintf(stderr, "·´Ïò´«²¥´íÎó!!·´Ïò´«²¥µÄÆğÊ¼½ÚµãÖ»ÄÜÊÇÒÔ±êÁ¿Êä³öµÄ½Úµã.");
 		assert(matgraph[node].type == MEANSQUAR);
 	}
 	else if (has_forward == false)
 	{
-		fprintf(stderr, "è¯·æ³¨æ„,åå‘æ¢¯åº¦è®¡ç®—ä¹‹å‰å¿…é¡»è¿›è¡Œå‰å‘è®¡ç®—.");
+		fprintf(stderr, "Çë×¢Òâ,·´ÏòÌİ¶È¼ÆËãÖ®Ç°±ØĞë½øĞĞÇ°Ïò¼ÆËã.");
 		assert(has_forward != false);
 	}
 	else
@@ -437,25 +446,25 @@ void matrix_backFlow(int node)
  */
 static void backward(int node)
 {
-	if (matgraph[node].type==MEANSQUAR)//æ¢¯åº¦æºç‚¹,æ ‡é‡å¯¹çŸ©é˜µæ±‚å¯¼,è¿™ä¸ªèŠ‚ç‚¹ä»…æœ‰å·¦å­©å­
+	if (matgraph[node].type==MEANSQUAR)//Ìİ¶ÈÔ´µã,±êÁ¿¶Ô¾ØÕóÇóµ¼,Õâ¸ö½Úµã½öÓĞ×óº¢×Ó
 	{
 		for (int i = 0; i < grad[matgraph[node].lnode].m; ++i)
 			for (int j = 0; j < grad[matgraph[node].lnode].n; ++j)
-				grad[matgraph[node].lnode].data[i][j] = matgraph[matgraph[node].lnode].data[i][j];//å‡æ–¹è¯¯å·®å¯¼æ•°
+				grad[matgraph[node].lnode].data[i][j] = matgraph[matgraph[node].lnode].data[i][j];//¾ù·½Îó²îµ¼Êı
 		grad[matgraph[node].lnode].parentGrad--;
 		backward(matgraph[node].lnode);
 	}
-	else if (grad[node].parentGrad >= 1)//ä»…ä½™ä¸€ä¸ªçˆ¶èŠ‚ç‚¹æ²¡æœ‰ä¼ é€’å¯¼æ•°,æˆ–è€…ä¸¤ä¸ªçˆ¶èŠ‚ç‚¹éƒ½æ²¡æœ‰ä¼ é€’å¯¼æ•°
+	else if (grad[node].parentGrad >= 1)//½öÓàÒ»¸ö¸¸½ÚµãÃ»ÓĞ´«µİµ¼Êı,»òÕßÁ½¸ö¸¸½Úµã¶¼Ã»ÓĞ´«µİµ¼Êı
 	{
-		return;//ç­‰å¾…å‰©ä½™çˆ¶èŠ‚ç‚¹ä¼ é€’å¯¼æ•°
+		return;//µÈ´ıÊ£Óà¸¸½Úµã´«µİµ¼Êı
 	}
-	else//æ‰€æœ‰çˆ¶èŠ‚ç‚¹å¯¼æ•°å‡ä¼ é€’åˆ°æ­¤
+	else//ËùÓĞ¸¸½Úµãµ¼Êı¾ù´«µİµ½´Ë
 	{
-		if (matgraph[node].lnode == -1 && matgraph[node].rnode == -1)//æ˜¯å¶å­èŠ‚ç‚¹
+		if (matgraph[node].lnode == -1 && matgraph[node].rnode == -1)//ÊÇÒ¶×Ó½Úµã
 		{
-			return;//æ¢¯åº¦æ±‚è§£å®Œæˆ
+			return;//Ìİ¶ÈÇó½âÍê³É
 		}
-		else//éå¶å­èŠ‚ç‚¹
+		else//·ÇÒ¶×Ó½Úµã
 		{
 			switch (grad[node].type)
 			{
@@ -464,8 +473,8 @@ static void backward(int node)
 				for (int i = 0; i < matgraph[node].m; ++i)
 					for (int j = 0; j < matgraph[node].n; ++j)
 					{
-						grad[matgraph[node].lnode].data[i][j] += grad[node].data[i][j];//æ›´æ–°å·¦å­©å­çš„æ¢¯åº¦
-						grad[matgraph[node].rnode].data[i][j] += grad[node].data[i][j];//æ›´æ–°å³å­©å­çš„æ¢¯åº¦
+						grad[matgraph[node].lnode].data[i][j] += grad[node].data[i][j];//¸üĞÂ×óº¢×ÓµÄÌİ¶È
+						grad[matgraph[node].rnode].data[i][j] += grad[node].data[i][j];//¸üĞÂÓÒº¢×ÓµÄÌİ¶È
 					}
 				grad[matgraph[node].lnode].parentGrad--;
 				grad[matgraph[node].rnode].parentGrad--;
@@ -479,14 +488,14 @@ static void backward(int node)
 					for (int j = 0; j < matgraph[matgraph[node].rnode].m; ++j)
 					{
 						for (int k = 0; k < grad[node].n; ++k)
-							grad[matgraph[node].lnode].data[i][j] += grad[node].data[i][k] * matgraph[matgraph[node].rnode].data[j][k];//æ›´æ–°å·¦å­©å­çš„æ¢¯åº¦
+							grad[matgraph[node].lnode].data[i][j] += grad[node].data[i][k] * matgraph[matgraph[node].rnode].data[j][k];//¸üĞÂ×óº¢×ÓµÄÌİ¶È
 					}
 
 				for (int i = 0; i < matgraph[matgraph[node].lnode].n; ++i)
 					for (int j = 0; j < grad[node].n; ++j)
 					{
 						for (int k = 0; k < grad[node].m; ++k)
-							grad[matgraph[node].rnode].data[i][j] += grad[node].data[k][j] * matgraph[matgraph[node].lnode].data[k][i];//æ›´æ–°å³å­©å­çš„æ¢¯åº¦
+							grad[matgraph[node].rnode].data[i][j] += grad[node].data[k][j] * matgraph[matgraph[node].lnode].data[k][i];//¸üĞÂÓÒº¢×ÓµÄÌİ¶È
 					}
 				grad[matgraph[node].lnode].parentGrad--;
 				grad[matgraph[node].rnode].parentGrad--;
@@ -499,8 +508,8 @@ static void backward(int node)
 				for (int i = 0; i < matgraph[node].m; ++i)
 					for (int j = 0; j < matgraph[node].n; ++j)
 					{
-						grad[matgraph[node].lnode].data[i][j] += grad[node].data[i][j];//æ›´æ–°å·¦å­©å­çš„æ¢¯åº¦
-						grad[matgraph[node].rnode].data[i][j] -= grad[node].data[i][j];//æ›´æ–°å³å­©å­çš„æ¢¯åº¦
+						grad[matgraph[node].lnode].data[i][j] += grad[node].data[i][j];//¸üĞÂ×óº¢×ÓµÄÌİ¶È
+						grad[matgraph[node].rnode].data[i][j] -= grad[node].data[i][j];//¸üĞÂÓÒº¢×ÓµÄÌİ¶È
 					}
 				grad[matgraph[node].lnode].parentGrad--;
 				grad[matgraph[node].rnode].parentGrad--;
@@ -513,7 +522,7 @@ static void backward(int node)
 				for (int i = 0; i < matgraph[node].m; ++i)
 					for (int j = 0; j < matgraph[node].n; ++j)
 					{
-						grad[matgraph[node].lnode].data[i][j] += grad[node].data[i][j] * (matgraph[matgraph[node].lnode].data[i][j] > 0 ? 1 : 0);//æ›´æ–°å·¦å­©å­çš„æ¢¯åº¦
+						grad[matgraph[node].lnode].data[i][j] += grad[node].data[i][j] * (matgraph[matgraph[node].lnode].data[i][j] > 0 ? 1 : 0);//¸üĞÂ×óº¢×ÓµÄÌİ¶È
 					}
 				grad[matgraph[node].lnode].parentGrad--;
 				backward(matgraph[node].lnode);
@@ -528,7 +537,7 @@ static void backward(int node)
  * @brief
  *
  */
-static void cleargrad()//æ¸…é™¤æ‰€æœ‰èŠ‚ç‚¹çš„æ¢¯åº¦ä»¥åŠé‡ç½®åŒäº²èŠ‚ç‚¹ä¸­å°šæœªæ±‚å¯¼çš„ä¸ªæ•°
+static void cleargrad()//Çå³ıËùÓĞ½ÚµãµÄÌİ¶ÈÒÔ¼°ÖØÖÃË«Ç×½ÚµãÖĞÉĞÎ´Çóµ¼µÄ¸öÊı
 {
 	for (int i = 0; i < graphpoint; ++i)
 	{
@@ -539,18 +548,7 @@ static void cleargrad()//æ¸…é™¤æ‰€æœ‰èŠ‚ç‚¹çš„æ¢¯åº¦ä»¥åŠé‡ç½®åŒäº²èŠ‚ç‚¹ä¸­å
 				grad[i].data[index][j] = 0.0;
 			}
 		}
-		if (grad[i].rnode != -1 && grad[i].lnode != -1)
-		{
-			grad[i].parentGrad = 2;
-		}
-		else if (grad[i].lnode != -1 || grad[i].rnode != -1)
-		{
-			grad[i].parentGrad = 1;
-		}
-		else
-		{
-			grad[i].parentGrad = 0;
-		}
+		grad[i].parentGrad = grad[i].parentGrad_;
 	}
 }
 
@@ -573,7 +571,7 @@ void matrix_optimize(int vari_node, double learningrate)
 {
 	if (matgraph[vari_node].type != VARIABLE && learningrate >= 0)
 	{
-		fprintf(stderr, "ä¼˜åŒ–èŠ‚ç‚¹ä¸æ˜¯VariableèŠ‚ç‚¹!!");
+		fprintf(stderr, "ÓÅ»¯½Úµã²»ÊÇVariable½Úµã!!");
 		assert(matgraph[vari_node].type == VARIABLE);
 	}
 	double sum = 0.0f;
@@ -583,9 +581,12 @@ void matrix_optimize(int vari_node, double learningrate)
 			sum += grad[vari_node].data[i][j] * grad[vari_node].data[i][j];
 		}
 	sum = sqrt(sum);
-	for (int i = 0; i < matgraph[vari_node].m; ++i)
-		for (int j = 0; j < matgraph[vari_node].n; ++j)
-			matgraph[vari_node].data[i][j] -= learningrate * (grad[vari_node].data[i][j] / sum);
+	if (sum != 0)
+	{
+		for (int i = 0; i < matgraph[vari_node].m; ++i)
+			for (int j = 0; j < matgraph[vari_node].n; ++j)
+				matgraph[vari_node].data[i][j] -= learningrate * (grad[vari_node].data[i][j] / sum);
+	}
 }
 /**
  * @brief
@@ -602,7 +603,7 @@ void matrix_printGrad(int node)
 	}
 }
 /**
- * @brief è¾“å…¥æ•°æ®å¹¶å°†æ•°æ®è½¬æ¢ä¸ºNodeç±»å‹ä½œä¸ºå…¶ä»–å‡½æ•°çš„å‚æ•°
+ * @brief ÊäÈëÊı¾İ²¢½«Êı¾İ×ª»»ÎªNodeÀàĞÍ×÷ÎªÆäËûº¯ÊıµÄ²ÎÊı
  *
  * @param m
  * @param n
@@ -622,5 +623,11 @@ Node matrix_scanData(int m, int n)
 	temp.m = m;
 	temp.n = n;
 	return temp;
+}
+Node matrix_creatNode (int origin)
+{
+	Node no;
+	no=matgraph[origin];
+	return no;
 }
 

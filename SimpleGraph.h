@@ -34,6 +34,7 @@ typedef struct Node {
 	int rnode;//Right child index in forward table.Second parent index in backward table. 
 	enum Type type;//Type of the node.
 	int parentGrad;//Only use in Gradient table,calculate the rest parent which has not been derivated.
+	int parentGrad_;//记录初始化的双亲数目
 }Node;
 
 /**
@@ -42,7 +43,7 @@ typedef struct Node {
  * @param node The node index you want to optimize(Must be a scaler).
  */
 void matrix_backFlow(int node);
-
+Node matrix_creatNode(int origin);
 /**
  * @brief Create a constant node
  * 
