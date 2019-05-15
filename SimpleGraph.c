@@ -1,14 +1,12 @@
 /**
- * @file mygraph.c
- * @author ChangKaiyan (changkaiyan@std.uestc.edu.cn)
- * @brief A Computational Graph for Deep learning from UESTC Software Engineering(Embeded System)
- * 深度学习计算图@电子科技大学信息与软件工程学院
+ * @author ChangKaiyan (changkaiyan@qq.com)
+ * @brief A Computational Graph for Deep learning from UESTC Software Engineering
  * @version 0.1
- * @date 2018-11-08
- *
+ * @date 2019-05-15
  * @copyright Copyright 2018 Kaiyan Chang
  *
  */
+
 #include<stdio.h>
 #include<math.h>
 #include<assert.h>
@@ -16,6 +14,15 @@
 #include"SimpleGraph.h"
 #include<stdbool.h>
 
+#define ERRORFUNC fprintf(stderr,"In function %s , in line %d ,"\
+					"an error occurs.\nCheck it for the details:\n",\
+					__FUNCTION__,__LINE__)
+#ifdef DEBUG
+	#define DEBUGSHOW printf("Running in function %s, in line %d:\n",__FUNCTION__,__LINE__)
+#endif
+#ifndef DEBUGSHOW
+	#define DEBUGSHOW
+#endif
 
 static Node mul(Node*a, Node*b);
 static Node add(Node*a, Node*b);
@@ -94,10 +101,10 @@ static Node mul(Node*a, Node*b)
 /**
  * @brief
  *
- * @param x
+ * @param x Which must have specific shape and data
  * @return int
  */
-int matrix_constant(Node x)//x必须有数据,必须有具体的大小
+int matrix_constant(Node x)
 {
 	matgraph[graphpoint] = x;
 	grad[graphpoint].type = matgraph[graphpoint].type = CONSTANT;
@@ -136,7 +143,7 @@ int matrix_variable(Node x)
 }
 
 /**
- * @brief
+ * @brief 
  *
  * @param m
  * @param n
@@ -199,6 +206,7 @@ int matrix_add(int lchild, int rchild)
  */
 int matrix_mul(int lchild, int rchild)
 {
+	DEBUGSHOW;
 	grad[graphpoint].m = matgraph[graphpoint].m = matgraph[lchild].m;
 	grad[graphpoint].n = matgraph[graphpoint].n = matgraph[rchild].n;
 	matgraph[graphpoint].data = (double**)calloc(matgraph[graphpoint].m, sizeof(double*));
@@ -326,7 +334,8 @@ void matrix_fillIn(int node, Node x)
 {
 	if (matgraph[node].type != PLACEHOLDER)
 	{
-		fprintf(stderr, "不能向一个非placeholder节点中填充数据");
+		ERRORFUNC;
+		fprintf(stderr, "Can not fill in Data to a not-placeholder node!");
 	}
 	else
 		matgraph[node].data = x.data;
@@ -353,9 +362,10 @@ void deletegraph()
 	}
 }
 
+
 /**
- * @brief 统一使用固定型号矩阵的计算图,规范计算图,只有一个优化节点
- *
+ * @brief Make the graph run, caculate the forward.Only one optimized node and a fixed shape graph.
+ * 
  */
 void matrix_forwardFlow()
 {
@@ -400,7 +410,8 @@ void matrix_forwardFlow()
 		{
 			if (matgraph[index].data == NULL)
 			{
-				fprintf(stderr, "在前向传播之前需要对placeholder节点赋值!");
+				ERRORFUNC;
+				fprintf(stderr, "Must assign to placeholder before putting forward!\n");
 				assert(matgraph[index].data != NULL);
 			}
 			break;
@@ -410,6 +421,7 @@ void matrix_forwardFlow()
 			for (int i = 0; i < matgraph[index].m; ++i)
 				for (int j = 0; j < matgraph[index].n; ++j)
 					matgraph[index].data[i][j] = matgraph[matgraph[index].lnode].data[i][j] > 0 ? matgraph[matgraph[index].lnode].data[i][j] : 0;
+			break;
 		}
 		default:;//默认情况下是叶子节点,什么也不需要做
 		}
@@ -425,12 +437,14 @@ void matrix_backFlow(int node)
 {
 	if (matgraph[node].type != MEANSQUAR)
 	{
-		fprintf(stderr, "反向传播错误!!反向传播的起始节点只能是以标量输出的节点.");
+		ERRORFUNC;
+		fprintf(stderr, "Error in backFlow. The original node must output scaler!\n");
 		assert(matgraph[node].type == MEANSQUAR);
 	}
 	else if (has_forward == false)
 	{
-		fprintf(stderr, "请注意,反向梯度计算之前必须进行前向计算.");
+		ERRORFUNC;
+		fprintf(stderr, "On every epoch, forward flow must before back flow.\n");
 		assert(has_forward != false);
 	}
 	else
@@ -446,6 +460,7 @@ void matrix_backFlow(int node)
  */
 static void backward(int node)
 {
+	DEBUGSHOW;
 	if (matgraph[node].type==MEANSQUAR)//梯度源点,标量对矩阵求导,这个节点仅有左孩子
 	{
 		for (int i = 0; i < grad[matgraph[node].lnode].m; ++i)
@@ -534,11 +549,13 @@ static void backward(int node)
 }
 
 /**
- * @brief
+ * @brief Clear the gradient of all the node and reset the count which has 
+ * 			not been derived in its parent nodes.
  *
  */
 static void cleargrad()//清除所有节点的梯度以及重置双亲节点中尚未求导的个数
 {
+	DEBUGSHOW;
 	for (int i = 0; i < graphpoint; ++i)
 	{
 		for (int index = 0; index < grad[i].m; ++index)
@@ -553,12 +570,13 @@ static void cleargrad()//清除所有节点的梯度以及重置双亲节点中尚未求导的个数
 }
 
 /**
- * @brief
- *
- * @param node
+ * @brief Print data matrix
+ * 
+ * @param node The index of a node
  */
 void matrix_printData(int node)
 {
+	DEBUGSHOW;
 	for (int i = 0; i < matgraph[node].m; ++i)
 	{
 		for (int j = 0; j < matgraph[node].n; ++j)
@@ -569,12 +587,14 @@ void matrix_printData(int node)
 
 void matrix_optimize(int vari_node, double learningrate)
 {
+	DEBUGSHOW;
 	if (matgraph[vari_node].type != VARIABLE && learningrate >= 0)
 	{
-		fprintf(stderr, "优化节点不是Variable节点!!");
+		ERRORFUNC;
+		fprintf(stderr, "The optimize node is not a Variable node!!\n");
 		assert(matgraph[vari_node].type == VARIABLE);
 	}
-	double sum = 0.0f;
+	double sum = 0.0;
 	for (int i = 0; i < matgraph[vari_node].m; ++i)
 		for (int j = 0; j < matgraph[vari_node].n; ++j)
 		{
@@ -588,10 +608,12 @@ void matrix_optimize(int vari_node, double learningrate)
 				matgraph[vari_node].data[i][j] -= learningrate * (grad[vari_node].data[i][j] / sum);
 	}
 }
+
+
 /**
- * @brief
- *
- * @param node
+ * @brief Print gradiend matrix
+ * 
+ * @param node The index of the graph
  */
 void matrix_printGrad(int node)
 {
@@ -602,15 +624,18 @@ void matrix_printGrad(int node)
 		putchar('\n');
 	}
 }
+
+
 /**
- * @brief 输入数据并将数据转换为Node类型作为其他函数的参数
+ * @brief Input matrix data and convert it to Node type.
  *
- * @param m
- * @param n
- * @return Node
+ * @param m Row numbers
+ * @param n Col numbers
+ * @return Node Data matrix
  */
 Node matrix_scanData(int m, int n)
 {
+	DEBUGSHOW;
 	Node temp;
 	temp.data = (double**)malloc(sizeof(double*)*m);
 	for (int i = 0; i < m; ++i)
@@ -629,5 +654,46 @@ Node matrix_creatNode (int origin)
 	Node no;
 	no=matgraph[origin];
 	return no;
+}
+Node matrix_scanDataFromCsv(const char* filename,int m,int n)
+{
+	Node temp;
+	FILE* file=fopen(filename,"r");
+	if(file==NULL)
+	{
+		ERRORFUNC;
+		fprintf(stderr,"File errors!\n");
+		return temp;
+	}
+	temp.data = (double**)malloc(sizeof(double*)*m);
+	for (int i = 0; i < m; ++i)
+	{
+		temp.data[i] = (double*)malloc(sizeof(double)*n);
+	}
+	if(n>1)
+	{
+		for (int i = 0; i < m; ++i)
+		{	
+			for (int j = 0; j < n-1; ++j)
+				fscanf(file," %lf,", &temp.data[i][j]);
+			fscanf(file," %lf",&temp.data[i][n-1]);
+		}
+	}
+	else if(n==1)
+	{
+		for (int i = 0; i < m; ++i)
+		{	
+			fscanf(file," %lf",&temp.data[i][n-1]);
+		}
+	}
+	else
+	{
+		ERRORFUNC;
+		fprintf(stderr,"Error in the input format! Cols must more than 1. \n");
+	}
+	
+	temp.m = m;
+	temp.n = n;
+	return temp;
 }
 
