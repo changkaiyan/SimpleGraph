@@ -2,7 +2,6 @@
 <svg width="320" height="320" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
  <!-- Created with SVG-edit - http://svg-edit.googlecode.com/ -->
  <g>
-  <title>Layer 1</title>
   <g id="svg_5">
    <rect height="218.077" width="228.846" y="62.8459" x="49.8072" stroke-width="5" stroke="#000000" fill="#ffffaa" id="svg_1"/>
    <circle r="101.482" cy="172.637" cx="163.441" stroke-width="5" stroke="#000000" fill="#7f00ff" id="svg_3"/>
